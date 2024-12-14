@@ -25,7 +25,7 @@ const corsOptions = {
   maxAge: 86400, // 24 hours
 };
 
-// Apply CORS middleware
+// Apply CORS middleware first
 app.use(cors(corsOptions));
 
 // Handle preflight requests
@@ -33,6 +33,10 @@ app.options("*", cors(corsOptions));
 
 // Apply security middleware
 setupSecurity(app);
+
+// Parse JSON and URL-encoded bodies BEFORE other middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 console.log("Environment loaded:", {
   port: process.env.PORT,
@@ -60,7 +64,7 @@ connectToDatabase()
     process.exit(1);
   });
 
-// Request logging middleware
+// Request logging middleware (now after body parsing)
 app.use((req, res, next) => {
   console.log(`\n🌐 ${new Date().toISOString()}`);
   console.log(`📡 ${req.method} ${req.url}`);
@@ -79,10 +83,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-// middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
 // Route debugging middleware
 app.use((req, res, next) => {
